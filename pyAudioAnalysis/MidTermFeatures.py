@@ -29,9 +29,10 @@ def beat_extraction(short_features, window_size, plot=False):
 
     max_beat_time = int(round(2.0 / window_size))
     hist_all = np.zeros((max_beat_time,))
+    hist_centers = []
     # for each feature
     for ii, i in enumerate(selected_features):
-        # dif threshold (3 x Mean of Difs)
+        # dif threshold (3 x Mean of Diffs)
         dif_threshold = 2.0 * (np.abs(short_features[i, 0:-1] -
                                       short_features[i, 1::])).mean()
         if dif_threshold <= 0:
@@ -61,7 +62,7 @@ def beat_extraction(short_features, window_size, plot=False):
         plt.show(block=False)
         plt.figure()
 
-    # Get beat as the argmax of the agregated histogram:
+    # Get beat as the argmax of the aggregated histogram:
     max_indices = np.argmax(hist_all)
     bpms = 60 / (hist_centers * window_size)
     bpm = bpms[max_indices]
@@ -168,7 +169,8 @@ def directory_feature_extraction(folder_path, mid_window, mid_step,
             continue        
         sampling_rate, signal = audioBasicIO.read_audio_file(file_path)
         if sampling_rate == 0:
-            continue        
+            print("Reading audio file failed: {}".format(file_path))
+            continue
 
         t1 = time.time()        
         signal = audioBasicIO.stereo_to_mono(signal)
@@ -176,6 +178,7 @@ def directory_feature_extraction(folder_path, mid_window, mid_step,
             print("  (AUDIO FILE TOO SMALL - SKIPPING)")
             continue
         wav_file_list2.append(file_path)
+        beat, beat_conf = 0, 0
         if compute_beat:
             mid_features, short_features, mid_feature_names = \
                 mid_feature_extraction(signal, sampling_rate,
@@ -227,7 +230,7 @@ def multiple_directory_feature_extraction(path_list, mid_window, mid_step,
                                        'audioData/classSegmentsRec/speech',
                                        'audioData/classSegmentsRec/brush-teeth',
                                        'audioData/classSegmentsRec/shower'], 1, 
-                                       1, 0.02, 0.02);
+                                       1, 0.02, 0.02)
 
     It can be used during the training process of a classification model ,
     in order to get feature matrices from various audio classes (each stored in
@@ -270,16 +273,16 @@ def directory_feature_extraction_no_avg(folder_path, mid_window, mid_step,
         - filenames:
     """
 
-    wav_file_list = []
+    audio_file_list = []
     signal_idx = np.array([])
     mid_features = np.array([])
     types = ('*.wav', '*.aif',  '*.aiff', '*.ogg')
     for files in types:
-        wav_file_list.extend(glob.glob(os.path.join(folder_path, files)))
+        audio_file_list.extend(glob.glob(os.path.join(folder_path, files)))
 
-    wav_file_list = sorted(wav_file_list)
+    audio_file_list = sorted(audio_file_list)
 
-    for i, file_path in enumerate(wav_file_list):
+    for i, file_path in enumerate(audio_file_list):
         sampling_rate, signal = audioBasicIO.read_audio_file(file_path)
         if sampling_rate == 0:
             continue
@@ -300,7 +303,7 @@ def directory_feature_extraction_no_avg(folder_path, mid_window, mid_step,
             signal_idx = np.append(signal_idx, i *
                                    np.ones((mid_feature_vector.shape[0], )))
 
-    return mid_features, signal_idx, wav_file_list
+    return mid_features, signal_idx, audio_file_list
 
 
 """

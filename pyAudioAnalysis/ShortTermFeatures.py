@@ -1,9 +1,8 @@
 from __future__ import print_function
-import math
+
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft
-import matplotlib.pyplot as plt
-from scipy.signal import lfilter
 from scipy.fftpack.realtransforms import dct
 from tqdm import tqdm
 
@@ -146,7 +145,7 @@ def harmonic(frame, sampling_rate):
     if m > len(r):
         m = len(r) - 1
 
-    gamma = np.zeros((m), dtype=np.float64)
+    gamma = np.zeros(m, dtype=np.float64)
     cumulative_sum = np.cumsum(frame ** 2)
     gamma[m0:m] = r[m0:m] / (np.sqrt((g * cumulative_sum[m:m0:-1])) + eps)
 
@@ -159,7 +158,7 @@ def harmonic(frame, sampling_rate):
         if len(gamma) == 0:
             hr = 1.0
             blag = 0.0
-            gamma = np.zeros((m), dtype=np.float64)
+            gamma = np.zeros(m, dtype=np.float64)
         else:
             hr = np.max(gamma)
             blag = np.argmax(gamma)
@@ -183,8 +182,8 @@ def mfcc_filter_banks(sampling_rate, num_fft, lowfreq=133.33, linc=200 / 3,
     https://pypi.python.org/pypi/scikits.talkbox
     """
 
-    if sampling_rate < 8000:
-        nlogfil = 5
+    # if sampling_rate < 8000:
+    #     nlogfil = 5
 
     # Total number of filters
     num_filt_total = num_lin_filt + num_log_filt
@@ -192,8 +191,8 @@ def mfcc_filter_banks(sampling_rate, num_fft, lowfreq=133.33, linc=200 / 3,
     # Compute frequency points of the triangle:
     frequencies = np.zeros(num_filt_total + 2)
     frequencies[:num_lin_filt] = lowfreq + np.arange(num_lin_filt) * linc
-    frequencies[num_lin_filt:] = frequencies[num_lin_filt - 1] * logsc ** \
-                                 np.arange(1, num_log_filt + 3)
+    frequencies[num_lin_filt:] = \
+        frequencies[num_lin_filt - 1] * logsc ** np.arange(1, num_log_filt + 3)
     heights = 2. / (frequencies[2:] - frequencies[0:-2])
 
     # Compute filterbank coeff (in fft domain, in bins)
@@ -293,7 +292,7 @@ def chroma_features(signal, sampling_rate, num_fft):
     #    plt.plot(finalC)
     #    ax.set_xticks(range(len(chromaNames)))
     #    ax.set_xticklabels(chromaNames)
-    #    xaxis = np.arange(0, 0.02, 0.01);
+    #    xaxis = np.arange(0, 0.02, 0.01)
     #    ax.set_yticks(range(len(xaxis)))
     #    ax.set_yticklabels(xaxis)
     #    plt.show(block=False)
@@ -319,8 +318,8 @@ def chromagram(signal, sampling_rate, window, step, plot=False,
     window = int(window)
     step = int(step)
     signal = np.double(signal)
-    signal = signal / (2.0 ** 15)
-    dc_offset = signal.mean()
+    signal /= 2.0 ** 15
+    dc_offset = np.mean(signal)
     maximum = (np.abs(signal)).max()
     signal = (signal - dc_offset) / (maximum - dc_offset)
 
@@ -329,13 +328,14 @@ def chromagram(signal, sampling_rate, window, step, plot=False,
     num_fft = int(window / 2)
     chromogram = np.zeros((int((num_samples-step-window) / step) + 1, 12),
                           dtype=np.float64)
+    chroma_names = []
     for cur_p in tqdm(range(window, num_samples - step, step),
                       disable=not show_progress):
         count_fr += 1
         x = signal[cur_p:cur_p + window]
         X = abs(fft(x))
         X = X[0:num_fft]
-        X = X / len(X)
+        X /= len(X)
         chroma_names, chroma_feature_matrix = chroma_features(X, sampling_rate,
                                                               num_fft)
         chroma_feature_matrix = chroma_feature_matrix[:, 0]
@@ -381,14 +381,14 @@ def spectrogram(signal, sampling_rate, window, step, plot=False,
         window:         the short-term window size (in samples)
         step:           the short-term window step (in samples)
         plot:           flag, 1 if results are to be ploted
-        show_progress flag for showing progress using tqdm
+        show_progress:  flag for showing progress using tqdm
     RETURNS:
     """
     window = int(window)
     step = int(step)
     signal = np.double(signal)
-    signal = signal / (2.0 ** 15)
-    dc_offset = signal.mean()
+    signal /= 2.0 ** 15
+    dc_offset = np.mean(signal)
     maximum = (np.abs(signal)).max()
     signal = (signal - dc_offset) / (maximum - dc_offset)
 
@@ -403,7 +403,7 @@ def spectrogram(signal, sampling_rate, window, step, plot=False,
         x = signal[cur_p:cur_p + window]
         X = abs(fft(x))
         X = X[0:num_fft]
-        X = X / len(X)
+        X /= len(X)
         specgram[count_fr-1, :] = X
 
     freq_axis = [float((f + 1) * sampling_rate) / (2 * num_fft)
@@ -440,8 +440,8 @@ def spectrogram(signal, sampling_rate, window, step, plot=False,
 # TODO
 def speed_feature(signal, sampling_rate, window, step):
     signal = np.double(signal)
-    signal = signal / (2.0 ** 15)
-    dc_offset = signal.mean()
+    signal /= 2.0 ** 15
+    dc_offset = np.mean(signal)
     maximum = (np.abs(signal)).max()
     signal = (signal - dc_offset) / maximum
     # print (np.abs(signal)).max()
@@ -455,21 +455,21 @@ def speed_feature(signal, sampling_rate, window, step):
     logsc = 1.0711703
     nlinfil = 13
     nlogfil = 27
-    n_mfcc_feats = 13
-    nfil = nlinfil + nlogfil
+    # n_mfcc_feats = 13
+    # nfil = nlinfil + nlogfil
     num_fft = window / 2
     if sampling_rate < 8000:
         nlogfil = 5
-        nfil = nlinfil + nlogfil
+        # nfil = nlinfil + nlogfil
         num_fft = window / 2
 
     # compute filter banks for mfcc:
-    fbank, freqs = mfcc_filter_banks(sampling_rate, num_fft, lowfreq, linsc,
-                                       logsc, nlinfil, nlogfil)
+    _, _ = mfcc_filter_banks(sampling_rate, num_fft, lowfreq, linsc,
+                             logsc, nlinfil, nlogfil)
 
-    n_time_spectral_feats = 8
-    n_harmonic_feats = 1
-    n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_harmonic_feats
+    # n_time_spectral_feats = 8
+    # n_harmonic_feats = 1
+    # n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_harmonic_feats
     # st_features = np.array([], dtype=np.float64)
     st_features = []
 
@@ -479,9 +479,9 @@ def speed_feature(signal, sampling_rate, window, step):
         cur_p = cur_p + step
         fft_magnitude = abs(fft(x))
         fft_magnitude = fft_magnitude[0:num_fft]
-        fft_magnitude = fft_magnitude / len(fft_magnitude)
-        Ex = 0.0
-        El = 0.0
+        fft_magnitude /= len(fft_magnitude)
+        # Ex = 0.0
+        # El = 0.0
         fft_magnitude[0:4] = 0
         #        M = np.round(0.016 * fs) - 1
         #        R = np.correlate(frame, frame, mode='full')
@@ -497,32 +497,6 @@ def speed_feature(signal, sampling_rate, window, step):
     #            curFV[n_time_
     #            spectral_feats+n_mfcc_feats+1]
     return np.array(st_features)
-
-
-def phormants(x, sampling_rate):
-    N = len(x)
-    w = np.hamming(N)
-
-    # Apply window and high pass filter.
-    x1 = x * w
-    x1 = lfilter([1], [1., 0.63], x1)
-
-    # Get LPC.
-    ncoeff = 2 + sampling_rate / 1000
-    A, e, k = lpc(x1, ncoeff)
-    # A, e, k = lpc(x1, 8)
-
-    # Get roots.
-    rts = np.roots(A)
-    rts = [r for r in rts if np.imag(r) >= 0]
-
-    # Get angles.
-    angz = np.arctan2(np.imag(rts), np.real(rts))
-
-    # Get frequencies.
-    frqs = sorted(angz * (sampling_rate / (2 * math.pi)))
-
-    return frqs
 
 
 """ Windowing and feature extraction """
@@ -544,17 +518,17 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
     RETURNS
         features (numpy.ndarray):        contains features
                                          (n_feats x numOfShortTermWindows)
-        feature_names (numpy.ndarray):   contains feature names
-                                         (n_feats x numOfShortTermWindows)
+        feature_names (list):            contains feature names
     """
-
+    if not signal.any():
+        raise Exception("Signal is empty: {}".format(signal))
     window = int(window)
     step = int(step)
 
     # signal normalization
     signal = np.double(signal)
-    signal = signal / (2.0 ** 15)
-    dc_offset = signal.mean()
+    signal /= 2.0 ** 15
+    dc_offset = np.mean(signal)
     signal_max = (np.abs(signal)).max()
     signal = (signal - dc_offset) / (signal_max + 0.0000000001)
 
@@ -571,7 +545,7 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
     n_mfcc_feats = 13
     n_chroma_feats = 13
     n_total_feats = n_time_spectral_feats + n_mfcc_feats + n_harmonic_feats + \
-                    n_chroma_feats
+        n_chroma_feats
     #    n_total_feats = n_time_spectral_feats + n_mfcc_feats +
     #    n_harmonic_feats
 
@@ -593,6 +567,8 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
         feature_names = feature_names_2
 
     features = []
+    feature_vector_prev = []
+    fft_magnitude_previous = []
     # for each short-term window to end of signal
     while current_position + window - 1 < number_of_samples:
         count_fr += 1
@@ -600,14 +576,14 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
         x = signal[current_position:current_position + window]
 
         # update window position
-        current_position = current_position + step
+        current_position += step
 
         # get fft magnitude
         fft_magnitude = abs(fft(x))
 
         # normalize fft
         fft_magnitude = fft_magnitude[0:num_fft]
-        fft_magnitude = fft_magnitude / len(fft_magnitude)
+        fft_magnitude /= len(fft_magnitude)
 
         # keep previous fft mag (used in spectral flux)
         if count_fr == 1:
@@ -633,9 +609,7 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
             spectral_entropy(fft_magnitude)
 
         # spectral flux
-        feature_vector[6] = \
-            spectral_flux(fft_magnitude,
-                          fft_magnitude_previous)
+        feature_vector[6] = spectral_flux(fft_magnitude, fft_magnitude_previous)
 
         # spectral rolloff
         feature_vector[7] = \
@@ -650,7 +624,7 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
         chroma_names, chroma_feature_matrix = \
             chroma_features(fft_magnitude, sampling_rate, num_fft)
         chroma_features_end = n_time_spectral_feats + n_mfcc_feats + \
-                              n_chroma_feats - 1
+            n_chroma_feats - 1
         feature_vector[mffc_feats_end:chroma_features_end] = \
             chroma_feature_matrix
         feature_vector[chroma_features_end] = chroma_feature_matrix.std()

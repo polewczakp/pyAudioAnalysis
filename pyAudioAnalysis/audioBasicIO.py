@@ -31,14 +31,14 @@ def convert_dir_mp3_to_wav(audio_folder, sampling_rate, num_channels,
 
     for f in files_list:
         audio_file = eyed3.load(f)
-        if use_tags and audio_file.tag != None:
+        if use_tags and audio_file.tag is not None:
             artist = audio_file.tag.artist
             title = audio_file.tag.title
-            if artist != None and title != None:
+            if artist is not None and title is not None:
                 if len(title) > 0 and len(artist) > 0:
                     filename = ntpath.split(f)[0] + os.sep + \
-                                  artist.replace(","," ") + " --- " + \
-                                  title.replace(","," ") + ".wav"
+                                  artist.replace(",", " ") + " --- " + \
+                                  title.replace(",", " ") + ".wav"
                 else:
                     filename = f.replace(".mp3", ".wav")
             else:
@@ -59,7 +59,7 @@ def convert_dir_fs_wav_to_wav(audio_folder, sampling_rate, num_channels):
     ARGUMENTS:
      - audio_folder:    the path of the folder where the WAVs are stored
      - sampling_rate:   the sampling rate of the generated WAV files
-     - num_channels:    the number of channesl of the generated WAV files
+     - num_channels:    the number of channels of the generated WAV files
     """
 
     types = (audio_folder + os.sep + '*.wav',)  # the tuple of file types
@@ -69,7 +69,7 @@ def convert_dir_fs_wav_to_wav(audio_folder, sampling_rate, num_channels):
         files_list.extend(glob.glob(files))
 
     output_folder = audio_folder + os.sep + "Fs" + str(sampling_rate) + \
-                    "_" + "NC" + str(num_channels)
+        "_" + "NC" + str(num_channels)
     if os.path.exists(output_folder) and output_folder != ".":
         shutil.rmtree(output_folder)
     os.makedirs(output_folder)
@@ -89,7 +89,7 @@ def read_audio_file(input_file):
     specified WAV of AIFF file
     """
 
-    sampling_rate = 0
+    sampling_rate = -1
     signal = np.array([])
     if isinstance(input_file, str):
         extension = os.path.splitext(input_file)[1].lower()
@@ -112,16 +112,11 @@ def read_aif(path):
     """
     Read audio file with .aif extension
     """
-    sampling_rate = -1
-    signal = np.array([])
-    try:
-        with aifc.open(path, 'r') as s:
-            nframes = s.getnframes()
-            strsig = s.readframes(nframes)
-            signal = numpy.fromstring(strsig, numpy.short).byteswap()
-            sampling_rate = s.getframerate()
-    except:
-        print("Error: read aif file. (DECODING FAILED)")
+    with aifc.open(path, 'r') as audio_file:
+        nframes = audio_file.getnframes()
+        strsig = audio_file.readframes(nframes)
+        signal = numpy.fromstring(strsig, numpy.short).byteswap()
+        sampling_rate = audio_file.getframerate()
     return sampling_rate, signal
 
 
@@ -136,9 +131,13 @@ def read_audio_generic(input_file):
         audiofile = AudioSegment.from_file(input_file)
         data = np.array([])
         if audiofile.sample_width == 2:
-            data = numpy.fromstring(audiofile._data, numpy.int16)
+            data = numpy.fromstring(audiofile.raw_data, numpy.int16)
         elif audiofile.sample_width == 4:
-            data = numpy.fromstring(audiofile._data, numpy.int32)
+            data = numpy.fromstring(audiofile.raw_data, numpy.int32)
+        elif audiofile.sample_width == 1:
+            data = numpy.fromstring(audiofile.raw_data, numpy.int8)
+        else:
+            print("Error: Unknown sample width: {}".format(audiofile.sample_width))
 
         if data.size > 0:
             sampling_rate = audiofile.frame_rate
@@ -146,8 +145,9 @@ def read_audio_generic(input_file):
             for chn in list(range(audiofile.channels)):
                 temp_signal.append(data[chn::audiofile.channels])
             signal = numpy.array(temp_signal).T
-    except:
+    except Exception as e:
         print("Error: file not found or other I/O error. (DECODING FAILED)")
+        print(e)
     return sampling_rate, signal
 
 

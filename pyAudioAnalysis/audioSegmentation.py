@@ -59,8 +59,8 @@ def labels_to_segments(labels, window):
      - window:     window duration (in seconds)
 
     RETURNS:
-     - segments:   a sequence of segment's limits: segs[i,0] is start and
-                   segs[i,1] are start and end point of segment i
+     - segments:   a sequence of segment's limits: segs[i, 0] is start and
+                   segs[i, 1] are start and end point of segment i
      - classes:    a sequence of class flags: class[i] is the class ID of
                    the i-th segment
     """
@@ -941,7 +941,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
 
         cluster_labels.append(cls)
         cluster_centers.append(means)
-        sil_1 = []; sil_2 = []
+        sil_1, sil_2 = [], []
         for c in range(speakers):
             # for each speaker (i.e. for each extracted cluster)
             clust_per_cent = np.nonzero(cls == c)[0].shape[0] / float(len(cls))
@@ -1000,7 +1000,8 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
         hmm = hmmlearn.hmm.GaussianHMM(start_prob.shape[0], "diag")
         hmm.startprob_ = start_prob
         hmm.transmat_ = transmat            
-        hmm.means_ = means; hmm.covars_ = cov
+        hmm.means_ = means
+        hmm.covars_ = cov
         cls = hmm.predict(mt_feats_norm_or.T)                    
     
     # Post-process method 2: median filtering:
