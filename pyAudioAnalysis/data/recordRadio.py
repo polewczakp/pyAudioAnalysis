@@ -96,33 +96,33 @@ class StreamRecorder():
         return self._pipeline.get_bus()
  
 def recordStation(stationName, outputName, sleepTime = -1, Listen = False):
-#	command = "gst-launch-1.0 uridecodebin uri="+stations["skai"]+" ! tee name=t \ 
-#	t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location=" + outputName
-#	command = "gst-launch-1.0 uridecodebin uri=" + stations[stationName]+ " 	! tee name=t \ t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location="+outputName
-#	command = "gst-launch-1.0 souphttpsrc location=" + stations[stationName]+ " 	! tee name=t \ t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location="+outputName
-#	os.system(command)
+    # command = "gst-launch-1.0 uridecodebin uri="+stations["skai"]+" ! tee name=t \
+    # t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location=" + outputName
+    # command = "gst-launch-1.0 uridecodebin uri=" + stations[stationName]+ "     ! tee name=t \ t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location="+outputName
+    # command = "gst-launch-1.0 souphttpsrc location=" + stations[stationName]+ "     ! tee name=t \ t. ! queue ! audioresample ! audio/x-raw, rate=16000 ! wavenc ! filesink location="+outputName
+    # os.system(command)
 
-	r = StreamRecorder()
-	r.uri = stations[stationName]
-	tempName = outputName.replace(".wav", "_temp.wav")
-	r.filename = tempName
-	r.samplerate = 16000
-	r.listen = Listen
-	r.start()
+    r = StreamRecorder()
+    r.uri = stations[stationName]
+    tempName = outputName.replace(".wav", "_temp.wav")
+    r.filename = tempName
+    r.samplerate = 16000
+    r.listen = Listen
+    r.start()
 
-	print r.bus()
-	if sleepTime<=0:
-		raw_input('Press [Enter] to stop')
-	else:
-		time.sleep(sleepTime)
-	r.stop()
-	os.system("avconv -i " + tempName + " -ar 16000 -ac 1 -y " + outputName)
+    print(r.bus())
+    if sleepTime <= 0:
+        input('Press [Enter] to stop')
+    else:
+        time.sleep(sleepTime)
+    r.stop()
+    os.system("avconv -i " + tempName + " -ar 16000 -ac 1 -y " + outputName)
 
-	
+
 
 def main(argv):
-	recordStation(argv[1], argv[2], int(argv[3]), False)
-	return 0
-	
+    recordStation(argv[1], argv[2], int(argv[3]), False)
+    return 0
+
 if __name__ == '__main__':
-	main(sys.argv)
+    main(sys.argv)

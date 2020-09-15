@@ -38,7 +38,7 @@ def levenshtein(str1, s2):
 
     stringRange = [range(N1 + 1)] * (N2 + 1)
     for i in range(N2 + 1):
-        stringRange[i] = range(i,i + N1 + 1)
+        stringRange[i] = range(i, i + N1 + 1)
     for i in range(0,N2):
         for j in range(0,N1):
             if str1[j] == s2[i]:
@@ -61,7 +61,7 @@ def text_list_to_colors(names):
     Dnames = np.zeros( (len(names), len(names)) )
     for i in range(len(names)):
         for j in range(len(names)):
-            Dnames[i,j] = 1 - 2.0 * levenshtein(names[i], 
+            Dnames[i, j] = 1 - 2.0 * levenshtein(names[i],
                                                 names[j]) / \
                           float(len(names[i]+names[j]))
 
@@ -74,7 +74,7 @@ def text_list_to_colors(names):
     textToColor = pca.transform(Dnames)
     textToColor = 255 * (textToColor - textToColor.min()) / \
                   (textToColor.max() - textToColor.min())
-    textmaps = generateColorMap();
+    textmaps = generateColorMap()
     colors = [textmaps[int(c)] for c in textToColor]
     return colors
 
@@ -90,7 +90,7 @@ def text_list_to_colors_simple(names):
     textToColor = np.array(textToColor)
     textToColor = 255 * (textToColor - textToColor.min()) / \
                   (textToColor.max() - textToColor.min())
-    textmaps = generateColorMap();
+    textmaps = generateColorMap()
     colors = [textmaps[int(c)] for c in textToColor]
     return colors
 
@@ -106,7 +106,7 @@ def chordialDiagram(fileStr, SM, Threshold, names, namesCategories):
         M = Threshold
 #        a = np.sort(SM2[i,:])[::-1]
 #        M = np.mean(a[0:int(SM2.shape[1]/3+1)])
-        SM2[i, SM2[i, :] < M] = 0;
+        SM2[i, SM2[i, :] < M] = 0
     dirChordial = fileStr + "_Chordial"
     if not os.path.isdir(dirChordial):
         os.mkdir(dirChordial)
@@ -114,11 +114,12 @@ def chordialDiagram(fileStr, SM, Threshold, names, namesCategories):
     namesPath        = dirChordial + os.sep + "Names.csv"
  
     jsonSMMatrix = simplejson.dumps(SM2.tolist())
-    f = open(jsonPath,'w'); f.write(jsonSMMatrix);  f.close()
-    f = open(namesPath,'w'); f.write("name,color\n"); 
-    for i, n in enumerate(names):
-        f.write("{0:s},{1:s}\n".format(n,"#"+str(colors[i])))
-    f.close()
+    with open(jsonPath, 'w') as file:
+        file.write(jsonSMMatrix)
+    with open(namesPath, 'w') as file:
+        file.write("name,color\n")
+        for i, n in enumerate(names):
+            file.write("{0:s},{1:s}\n".format(n, "#"+str(colors[i])))
 
     shutil.copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                  "data", "similarities.html"),
@@ -153,10 +154,10 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
             return
         
         names_category_toviz = [ntpath.basename(w).
-                                    replace('.wav','').split(" --- ")[0]
-                                for w in wav_files];
+                                    replace('.wav', '').split(" --- ")[0]
+                                for w in wav_files]
         names_to_viz = [ntpath.basename(w).replace('.wav', '')
-                        for w in wav_files];
+                        for w in wav_files]
 
         (F, MEAN, STD) = aT.normalize_features([all_mt_feat])
         F = np.concatenate(F)
@@ -186,13 +187,13 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
             return
         
         names_category_toviz = [ntpath.basename(w).
-                                    replace('.wav', '').split(" --- ")[0]
+                                replace('.wav', '').split(" --- ")[0]
                                 for w in wav_files]
         names_to_viz = [ntpath.basename(w).replace('.wav', '')
-                        for w in wav_files];
+                        for w in wav_files]
 
         ldaLabels = Ys
-        if priorKnowledge=="artist":
+        if priorKnowledge == "artist":
             unames_category_toviz = list(set(names_category_toviz))
             YsNew = np.zeros( Ys.shape )
             for i, uname in enumerate(unames_category_toviz):
@@ -200,7 +201,7 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
                                       enumerate(names_category_toviz)
                                       if x == uname]
                 for j in indicesUCategories:
-                    indices = np.nonzero(Ys==j)
+                    indices = np.nonzero(Ys == j)
                     YsNew[indices] = i
             ldaLabels = YsNew
 
@@ -210,7 +211,7 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
         clf = sklearn.discriminant_analysis.\
             LinearDiscriminantAnalysis(n_components=10)
         clf.fit(F, ldaLabels)    
-        reducedDims =  clf.transform(F)
+        reducedDims = clf.transform(F)
 
         pca = sklearn.decomposition.PCA(n_components = 2)
         pca.fit(reducedDims)
@@ -219,8 +220,8 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
         # TODO: CHECK THIS ... SHOULD LDA USED IN SEMI-SUPERVISED ONLY????
         # uLabels must have as many labels as the number of wav_files elements
         uLabels = np.sort(np.unique((Ys)))
-        reducedDimsAvg = np.zeros( (uLabels.shape[0], reducedDims.shape[1]))
-        finalDims = np.zeros( (uLabels.shape[0], 2) ) 
+        reducedDimsAvg = np.zeros((uLabels.shape[0], reducedDims.shape[1]))
+        finalDims = np.zeros((uLabels.shape[0], 2))
         for i, u in enumerate(uLabels):
             indices = [j for j, x in enumerate(Ys) if x == u]
             f = reducedDims[indices, :]
@@ -228,26 +229,25 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
         finalDims2 = reducedDims
 
     for i in range(finalDims.shape[0]):            
-        plt.text(finalDims[i,0], finalDims[i,1],
+        plt.text(finalDims[i, 0], finalDims[i, 1],
                  ntpath.basename(wav_files[i].replace('.wav','')),
                  horizontalalignment='center',
                  verticalalignment='center', fontsize=10)
-        plt.plot(finalDims[i,0], finalDims[i,1], '*r')
-    plt.xlim([1.2*finalDims[:,0].min(), 1.2*finalDims[:,0].max()])
-    plt.ylim([1.2*finalDims[:,1].min(), 1.2*finalDims[:,1].max()])            
+        plt.plot(finalDims[i, 0], finalDims[i, 1], '*r')
+    plt.xlim([1.2*finalDims[:, 0].min(), 1.2*finalDims[:, 0].max()])
+    plt.ylim([1.2*finalDims[:, 1].min(), 1.2*finalDims[:, 1].max()])
     plt.show()
 
     SM = 1.0 - distance.squareform(distance.pdist(finalDims2, 'cosine'))
     for i in range(SM.shape[0]):
-        SM[i,i] = 0.0;
-
+        SM[i, i] = 0.0
 
     chordialDiagram("visualization", SM, 0.50, names_to_viz,
                     names_category_toviz)
 
     SM = 1.0 - distance.squareform(distance.pdist(F, 'cosine'))
     for i in range(SM.shape[0]):
-        SM[i,i] = 0.0;
+        SM[i, i] = 0.0
     chordialDiagram("visualizationInitial", SM, 0.50, names_to_viz,
                     names_category_toviz)
 
@@ -263,7 +263,7 @@ def visualizeFeaturesFolder(folder, dimReductionMethod, priorKnowledge = "none")
     SMgroup = 1.0 - distance.squareform(distance.pdist(finalDimsGroup,
                                                        'cosine'))
     for i in range(SMgroup.shape[0]):
-        SMgroup[i,i] = 0.0;
+        SMgroup[i, i] = 0.0
     chordialDiagram("visualizationGroup", SMgroup, 0.50,
                     unames_category_toviz, unames_category_toviz)
 

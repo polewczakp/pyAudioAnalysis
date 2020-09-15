@@ -2,3 +2,12 @@
 *.pyc
 *.npy
 .idea
+*.wav
+*.aif
+*.aiff
+*.mp3
+*.au
+*.ogg
+*MEANS
+*.arff
+desktop.ini
